@@ -15,10 +15,14 @@ The format is an object associating a path with value, as follows:
 ```json
 {
   "secret/foo/bar": "baz",
-  "secret/something/else": "asdf1234"
+  "secret/something/else": {
+    "someKey": "someValue",
+    "anotherKey": "anotherValue"
+  }
 }
-
 ```
+
+If you see errors in your Vault client about `Invalid path for a versioned K/V secrets engine`, set the `vault-dev` container `VAULT_USE_V1_API` environment variable to `secret`. This [recreates](https://stackoverflow.com/a/49903604/223225) the `/secret` engine using v1 of the Vault API.
 
 Backends
 --------

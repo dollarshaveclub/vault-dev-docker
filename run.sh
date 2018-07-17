@@ -15,26 +15,36 @@ VAULT_POLICIES_FILE=${VAULT_POLICIES_FILE:-"/opt/policies.json"}
 # You can also set the VAULT_LOCAL_CONFIG environment variable to pass some
 # Vault configuration JSON without having to bind any volumes.
 if [ -n "$VAULT_LOCAL_CONFIG" ]; then
-    echo "$VAULT_LOCAL_CONFIG" > "$VAULT_CONFIG_DIR/local.json"
+  echo "$VAULT_LOCAL_CONFIG" > "$VAULT_CONFIG_DIR/local.json"
 fi
 
 vault server \
-        -config="$VAULT_CONFIG_DIR" \
-        -dev-root-token-id="${VAULT_DEV_ROOT_TOKEN_ID:-root}" \
-        -dev-listen-address="${VAULT_DEV_LISTEN_ADDRESS:-"0.0.0.0:8200"}" \
-        -dev "$@" &
+  -config="$VAULT_CONFIG_DIR" \
+  -dev-root-token-id="${VAULT_DEV_ROOT_TOKEN_ID:-root}" \
+  -dev-listen-address="${VAULT_DEV_LISTEN_ADDRESS:-"0.0.0.0:8200"}" \
+  -dev "$@" &
 
 # end copypasta
 
 sleep 1 # wait for Vault to come up
 
+# use the v1 version of the API if requested; https://stackoverflow.com/a/49903604/223225
+if [ -n "$VAULT_USE_V1_API" ]; then
+  vault secrets disable "${VAULT_USE_V1_API}"
+  vault secrets enable -version=1 -path="${VAULT_USE_V1_API}" kv
+fi
+
 # parse JSON array, populate Vault
 if [[ -f "$VAULT_SECRETS_FILE" ]]; then
   for path in $(jq -r 'keys[]' < "$VAULT_SECRETS_FILE"); do
-    jq -rj ".\"${path}\"" < "$VAULT_SECRETS_FILE" > /tmp/value
-    echo "writing value to ${path}"
-    vault write "${path}" "value=@/tmp/value"
-    rm -f /tmp/value
+    value=$(jq -rj ".\"${path}\"" < "$VAULT_SECRETS_FILE")
+    type=$(jq -rj ".\"${path}\" | \"\(. | type)\"" < "$VAULT_SECRETS_FILE")
+    echo "writing ${type} value to ${path}"
+    if [ $type = 'object' ] || [ $type = 'array' ]; then
+      echo "$value" | vault write "${path}" -
+    else
+      echo "$value" | vault write "${path}" value=-
+    fi
   done
 else
   echo "$VAULT_SECRETS_FILE not found, skipping"
