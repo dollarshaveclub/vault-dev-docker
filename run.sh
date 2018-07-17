@@ -1,5 +1,4 @@
-#!/bin/dumb-init /bin/sh
-
+#!/usr/bin/dumb-init /bin/sh
 rm -f /opt/healthcheck
 
 #copypasta from upstream docker-entrypoint.sh
