@@ -30,8 +30,11 @@ vault server \
 sleep 1 # wait for Vault to come up
 
 # use secrets engine v1
-vault secrets disable secret
-vault secrets enable -version=1 -path=secret -description='local secrets' kv
+vault secrets disable secret/
+vault secrets enable -path=secret/ -version=2 -description='local secrets' kv
+
+# enable the transit encryption feature
+vault secrets enable transit
 
 # parse JSON array, populate Vault
 if [[ -f "$VAULT_SECRETS_FILE" ]]; then
