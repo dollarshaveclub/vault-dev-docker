@@ -1,8 +1,11 @@
 FROM vault:1.3.0
 
-ADD . /tmp/
+ADD tmp /tmp/
+ADD run.sh /opt/
 
-RUN /tmp/setup.sh
+RUN apk update --no-cache \
+    && apk add --no-cache jq \
+    && chmod a+x /opt/run.sh
 
 ENV SKIP_SETCAP=1
 ENV VAULT_ADDR=http://0.0.0.0:8200
