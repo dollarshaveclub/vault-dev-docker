@@ -1,12 +1,15 @@
 #!/bin/sh
 
+VAULT_CONFIG_SCRIPT=${VAULT_CONFIG_SCRIPT:-"/usr/local/bin/vault-dev-config.sh"}
 VAULT_SECRETS_FILE=${VAULT_SECRETS_FILE:-"/opt/secrets.json"}
 VAULT_APP_ID_FILE=${VAULT_APP_ID_FILE:-"/opt/app-id.json"}
 VAULT_POLICIES_FILE=${VAULT_POLICIES_FILE:-"/opt/policies.json"}
 
-# use secrets engine v1
-vault secrets disable secret
-vault secrets enable -version=1 -path=secret -description='local secrets' kv
+if [[ -f "$VAULT_CONFIG_SCRIPT" ]]; then
+  "$VAULT_CONFIG_SCRIPT"
+else
+  echo "$VAULT_CONFIG_SCRIPT not found, skipping"
+fi
 
 # parse JSON array, populate Vault
 if [[ -f "$VAULT_SECRETS_FILE" ]]; then
