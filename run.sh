@@ -49,17 +49,17 @@ fi
 if [ -n "$VAULT_USE_APP_ID" ]; then
   vault auth-enable app-id
   if [[ -f "$VAULT_APP_ID_FILE" ]]; then
-  	for appID in $(jq -rc '.[]' < "$VAULT_APP_ID_FILE"); do
-	    name=$(echo "$appID" | jq -r ".name")
-	    policy=$(echo "$appID" | jq -r ".policy")
-	    echo "creating AppID policy with app ID $name for policy $policy"
-	    vault write auth/app-id/map/app-id/$name value=$policy display_name=$name
+    for appID in $(jq -rc '.[]' < "$VAULT_APP_ID_FILE"); do
+      name=$(echo "$appID" | jq -r ".name")
+      policy=$(echo "$appID" | jq -r ".policy")
+      echo "creating AppID policy with app ID $name for policy $policy"
+      vault write auth/app-id/map/app-id/$name value=$policy display_name=$name
       for userID in $(echo "$appID" | jq -r ".user_ids[]"); do
         name=$(echo "$appID" | jq -r ".name")
         echo "...creating user ID $userID for AppID $name"
         vault write auth/app-id/map/user-id/${userID} value=${name}
       done
-  	done
+    done
   else
     echo "$VAULT_APP_ID_FILE not found, skipping"
   fi
@@ -68,10 +68,10 @@ fi
 # Create any policies.
 if [[ -f "$VAULT_POLICIES_FILE" ]]; then
   for policy in $(jq -r 'keys[]' < "$VAULT_POLICIES_FILE"); do
-  	jq -rj ".\"${policy}\"" < "$VAULT_POLICIES_FILE" > /tmp/value
-  	echo "creating vault policy $policy"
-  	vault policy write "${policy}" /tmp/value
-  	rm -f /tmp/value
+    jq -rj ".\"${policy}\"" < "$VAULT_POLICIES_FILE" > /tmp/value
+    echo "creating vault policy $policy"
+    vault policy write "${policy}" /tmp/value
+    rm -f /tmp/value
   done
 else
   echo "$VAULT_POLICIES_FILE not found, skipping"
@@ -86,18 +86,18 @@ if [ -n "$VAULT_USE_K8S" ]; then
     kubernetes_host=${k8shost} \
     kubernetes_ca_cert="${cacert}"
   if [[ -f "$VAULT_K8SROLES_FILE" ]]; then
-  	for k8srole in $(jq -rc '.[]' < "$VAULT_K8SROLES_FILE"); do
+    for k8srole in $(jq -rc '.[]' < "$VAULT_K8SROLES_FILE"); do
       name=$(echo "$k8srole" | jq -r ".name")
-	    serviceaccounts=$(echo "$k8srole" | jq -r ".service_accounts")
-	    namespaces=$(echo "$k8srole" | jq -r ".namespaces")
+      serviceaccounts=$(echo "$k8srole" | jq -r ".service_accounts")
+      namespaces=$(echo "$k8srole" | jq -r ".namespaces")
       policies=$(echo "$k8srole" | jq -r ".policies")
-	    echo "creating k8s role with $name for policies $policies"
-	    vault write auth/kubernetes/role/$name \
+      echo "creating k8s role with $name for policies $policies"
+      vault write auth/kubernetes/role/$name \
         bound_service_account_names=${serviceaccounts} \
         bound_service_account_namespaces=${namespaces} \
         policies=${policies} \
         ttl=1h
-  	done
+    done
   else
     echo "$VAULT_K8SROLES_FILE not found, skipping"
   fi
