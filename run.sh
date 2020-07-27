@@ -47,7 +47,7 @@ fi
 
 # Optionally install the app id backend.
 if [ -n "$VAULT_USE_APP_ID" ]; then
-  vault auth-enable app-id
+  vault auth enable app-id
   if [[ -f "$VAULT_APP_ID_FILE" ]]; then
   	for appID in $(jq -rc '.[]' < "$VAULT_APP_ID_FILE"); do
 	    name=$(echo "$appID" | jq -r ".name")
@@ -103,8 +103,12 @@ if [ -n "$VAULT_USE_K8S" ]; then
   fi
 fi
 
-# docker healthcheck
-touch /opt/healthcheck
+if [ -n "SKIP_DOCKER_HEALTHCHECK" ];then
+  echo "skipping docker healthcheck"
+else
+  # docker healthcheck
+  touch /opt/healthcheck
+fi
 
 # block forever
 tail -f /dev/null
