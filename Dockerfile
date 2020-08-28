@@ -1,4 +1,4 @@
-FROM vault:1.3.0
+FROM vault:1.5.3
 
 ADD . /tmp/
 
