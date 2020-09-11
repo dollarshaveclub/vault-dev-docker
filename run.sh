@@ -38,7 +38,7 @@ if [[ -f "$VAULT_SECRETS_FILE" ]]; then
   for path in $(jq -r 'keys[]' < "$VAULT_SECRETS_FILE"); do
     jq -rj ".\"${path}\"" < "$VAULT_SECRETS_FILE" > /tmp/value
     echo "writing value to ${path}"
-    vault kv put "${path}" "value=@/tmp/value"
+    vault write "${path}" "value=@/tmp/value"
     rm -f /tmp/value
   done
 else
