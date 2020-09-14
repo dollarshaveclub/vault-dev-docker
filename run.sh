@@ -37,8 +37,8 @@ vault secrets enable -version=1 -path=secret -description='local secrets' kv
 if [[ -f "$VAULT_SECRETS_FILE" ]]; then
   for path in $(jq -r 'keys[]' < "$VAULT_SECRETS_FILE"); do
     jq -rj ".\"${path}\"" < "$VAULT_SECRETS_FILE" > /tmp/value
-    echo "writing value to ${path}"
-    vault kv put "${path}" "value=@/tmp/value"
+    echo "writing value to secret/${path}"
+    vault write "secret/${path}" "value=@/tmp/value"
     rm -f /tmp/value
   done
 else
