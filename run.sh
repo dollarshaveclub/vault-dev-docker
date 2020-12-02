@@ -80,10 +80,12 @@ fi
 # Enable K8s auth (will only work when running in k8s)
 if [ -n "$VAULT_USE_K8S" ]; then
   cacert=${VAULT_CA_CERT:-"@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"}
+  k8stoken=${VAULT_K8S_TOKEN:-"@/var/run/secrets/kubernetes.io/serviceaccount/token"}
   k8shost=${VAULT_K8S_HOST:-"https://kubernetes.default"}
   vault auth enable kubernetes
   vault write auth/kubernetes/config \
     kubernetes_host=${k8shost} \
+    token_reviewer_jwt=${k8stoken} \
     kubernetes_ca_cert="${cacert}"
   if [[ -f "$VAULT_K8SROLES_FILE" ]]; then
   	for k8srole in $(jq -rc '.[]' < "$VAULT_K8SROLES_FILE"); do
