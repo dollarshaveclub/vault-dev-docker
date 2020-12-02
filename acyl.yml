@@ -6,7 +6,8 @@ target_branches:
 application:
   chart_path: '.helm/charts/vault'
   chart_vars_path: '.helm/charts/vault/values.yaml'
-  image: vault-dev-docker
+  image: quay.io/dollarshaveclub/vault-dev
+
 
 
 dependencies:
