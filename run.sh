@@ -47,7 +47,7 @@ fi
 
 # Optionally install the app id backend.
 if [ -n "$VAULT_USE_APP_ID" ]; then
-  vault auth-enable app-id
+  vault auth enable app-id
   if [[ -f "$VAULT_APP_ID_FILE" ]]; then
   	for appID in $(jq -rc '.[]' < "$VAULT_APP_ID_FILE"); do
 	    name=$(echo "$appID" | jq -r ".name")
@@ -80,10 +80,12 @@ fi
 # Enable K8s auth (will only work when running in k8s)
 if [ -n "$VAULT_USE_K8S" ]; then
   cacert=${VAULT_CA_CERT:-"@/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"}
-  k8shost=${VAULT_K8S_HOST:-"https://kubernetes.default"}
+  k8stoken="$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)"
+  k8shost=${VAULT_K8S_HOST:-"https://kubernetes:443"}
   vault auth enable kubernetes
   vault write auth/kubernetes/config \
     kubernetes_host=${k8shost} \
+    token_reviewer_jwt="${k8stoken}" \
     kubernetes_ca_cert="${cacert}"
   if [[ -f "$VAULT_K8SROLES_FILE" ]]; then
   	for k8srole in $(jq -rc '.[]' < "$VAULT_K8SROLES_FILE"); do
@@ -96,15 +98,19 @@ if [ -n "$VAULT_USE_K8S" ]; then
         bound_service_account_names=${serviceaccounts} \
         bound_service_account_namespaces=${namespaces} \
         policies=${policies} \
-        ttl=1h
+        ttl=24h
   	done
   else
     echo "$VAULT_K8SROLES_FILE not found, skipping"
   fi
 fi
 
-# docker healthcheck
-touch /opt/healthcheck
+if [ -n "SKIP_DOCKER_HEALTHCHECK" ];then
+  echo "skipping docker healthcheck"
+else
+  # docker healthcheck
+  touch /opt/healthcheck
+fi
 
 # block forever
 tail -f /dev/null

@@ -9,6 +9,7 @@ application:
   image: quay.io/dollarshaveclub/vault-dev
 
 
+
 dependencies:
   direct:
 

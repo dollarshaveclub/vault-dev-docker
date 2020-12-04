@@ -23,7 +23,7 @@ nameOverride:
 
 enable_k8s_auth: true
 k8s_host: "https://kubernetes.default"
-
+createServiceAccount: false
 secrets:
   secret/something: "asdf"
 
