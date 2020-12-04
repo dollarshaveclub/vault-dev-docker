@@ -8,6 +8,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
+  serviceAccountName: "{{ .Values.serviceAccountName }}"
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
